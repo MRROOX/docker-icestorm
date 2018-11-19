@@ -179,7 +179,7 @@ COPY clock /etc/clock
 ENTRYPOINT ["/usr/bin/icebox", "--Ice.Config=/etc/clock/config.icebox "]
 ```
 
-# Ahora vamos hacer a construir la imagen
+# Ahora vamos a construir la imagen
 
 ```
 docker build --tag dockerice:first .
