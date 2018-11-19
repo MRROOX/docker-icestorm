@@ -6,7 +6,7 @@ Lo primero es clonar el ejemplo desde el repositorio oficial de zeroc-ice.
 ```
 git clone https://github.com/zeroc-ice/ice-demos.git
 ```
-Ahora devemos buscar el directorio ice-demos/python/IceStorm/Clock esta carpeta contiene el ejemplo Clock.
+Ahora devemos buscar el directorio ice-demos/python/IceStorm/clock ésta carpeta contiene el ejemplo clock.
 
 Copiamos la carpeta Clock dentro de nuestro directorio de trabajo.
 
