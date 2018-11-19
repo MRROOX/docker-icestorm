@@ -1,4 +1,4 @@
-# IceStorm on Docker Container
+# IceStorm en Docker Container
 
 Este demo muestra como utilizar [IceStorm][1] dentro de un Contendor Docker y como ejecutar el ejemplo Clock.
 
