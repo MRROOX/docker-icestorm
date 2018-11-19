@@ -1,168 +1,264 @@
 # IceStorm on Docker Container
 
+Este demo muestra como utilizar [IceStorm][1] dentro de un Contendor Docker y como ejecutar el ejemplo Clock.
 
-This demo shows how to use [IceStorm][1].
+Lo primero es clonar el ejemplo desde el repositorio oficial de zeroc-ice.
+```
+git clone https://github.com/zeroc-ice/ice-demos.git
+```
+Ahora devemos buscar el directorio ice-demos/python/IceStorm/Clock esta carpeta contiene el ejemplo Clock.
 
-To run the demo, start the IceStorm service:
+Copiamos la carpeta Clock dentro de nuestro directorio de trabajo.
+
+Ahora dentro del direcotio de trabajo y luego dentro del directorio Clock vamos a modificar el archivo config.icebox  de la siguiente forma.
+```
+#
+# Enable Ice.Admin object
+# The IceStorm service has its own endpoints (see config.service).
+#
+Ice.Admin.Endpoints=tcp -h localhost -p 9996
+Ice.Admin.InstanceName=icebox
+
+#
+# The IceStorm service. The service is configured using a separate
+# configuration file (see config.service).
+#
+IceBox.Service.IceStorm=IceStormService,37:createIceStorm --Ice.Config=/etc/clock/config.service
+
+#
+# Warn about connection exceptions
+#
+#Ice.Warn.Connections=1
+
+#
+# Network Tracing
+#
+# 0 = no network tracing
+# 1 = trace connection establishment and closure
+# 2 = like 1, but more detailed
+# 3 = like 2, but also trace data transfer
+#
+#Ice.Trace.Network=1
+
+#
+# Protocol Tracing
+#
+# 0 = no protocol tracing
+# 1 = trace protocol messages
+#
+#Ice.Trace.Protocol=1
+```
+# Tambien debemos modificar el archivo config.service de la siguiente forma.
 
 ```
-icebox --Ice.Config=config.icebox
+#
+# The IceStorm service instance name.
+#
+IceStorm.InstanceName=DemoIceStorm
+#
+# This property defines the endpoints on which the IceStorm
+# TopicManager listens.
+#
+
+IceStorm.TopicManager.Endpoints=default -h localhost -p 10000
+
+#
+# This property defines the endpoints on which the topic
+# publisher objects listen. If you want to federate
+# IceStorm instances this must run on a fixed port (or use
+# IceGrid).
+#
+IceStorm.Publish.Endpoints=tcp -h localhost -p 10001:udp -h localhost -p 10001
+
+#
+# TopicManager Tracing
+#
+# 0 = no tracing
+# 1 = trace topic creation, subscription, unsubscription
+# 2 = like 1, but with more detailed subscription information
+#
+IceStorm.Trace.TopicManager=2
+
+#
+# Topic Tracing
+#
+# 0 = no tracing
+# 1 = trace unsubscription diagnostics
+#
+IceStorm.Trace.Topic=1
+
+#
+# Subscriber Tracing
+#
+# 0 = no tracing
+# 1 = subscriber diagnostics (subscription, unsubscription, event
+#     propagation failures)
+#
+IceStorm.Trace.Subscriber=1
+
+#
+# Amount of time in milliseconds between flushes for batch mode
+# transfer. The minimum allowable value is 100ms.
+#
+IceStorm.Flush.Timeout=2000
+
+#
+# Network Tracing
+#
+# 0 = no network tracing
+# 1 = trace connection establishment and closure
+# 2 = like 1, but more detailed
+# 3 = like 2, but also trace data transfer
+#
+#Ice.Trace.Network=1
+
+#
+# This property defines the home directory of the LMDB
+# database environment for the IceStorm service.
+#
+IceStorm.LMDB.Path=/etc/clock/db
+
+#
+# IceMX configuration.
+#
+#Ice.Admin.Endpoints=tcp -h localhost -p 10004
+Ice.Admin.InstanceName=icestorm
+IceMX.Metrics.Debug.GroupBy=id
+IceMX.Metrics.ByParent.GroupBy=parent
 ```
 
-This configuration assumes there is a subdirectory named db in the
-current working directory.
+# Ahora crearemos el archivo Dockerfile
 
-In a separate window:
 
-```
-subscriber
-```
 
-In another window:
+Para construir la imagen vamos a utilizar el Dockerfile oficial de IceStorm [Dockerfile][2].
 
 ```
-publisher
+FROM ubuntu:16.04
+
+MAINTAINER ZeroC, Inc. docker-maintainers@zeroc.com
+
+ENV ICEBOX_VERSION 3.7.1
+
+RUN apt-key adv --keyserver keyserver.ubuntu.com --recv B6391CB2CFBA643D \
+    && echo "deb http://download.zeroc.com/Ice/3.7/ubuntu16.04 stable main" >> /etc/apt/sources.list.d/ice.list \
+    && apt-get update \
+    && apt-get install --no-install-recommends --no-install-suggests -y \
+        zeroc-icebox=${ICEBOX_VERSION}-* \
+        libzeroc-icestorm3.7=${ICEBOX_VERSION}-* \
+    && rm -rf /var/lib/apt/lists/*
+
+VOLUME ["/data"]
+
+ENTRYPOINT ["/usr/bin/icebox", "--IceBox.Service.IceStorm=IceStormService,37:createIceStorm \
+                                                          --Ice.Config=/etc/icestorm.conf \
+                                                          --Freeze.DbEnv.IceStorm.DbHome=/data"]
 ```
 
-While the publisher continues to run, "tick" messages should be
-displayed in the subscriber window.
-
-Options
-=======
-
-Both the subscriber and publisher take an optional topic name as a
-final argument. The default value for this topic is "time".
-
-Through the use of command-line options, both the subscriber and
-publisher can use different QoS for sending and receiving messages.
-
-Subscriber Options
-------------------
+# Ahora modificaremos el Dockerfile bajo nuestros requerimientos.
 
 ```
-subscriber --oneway
+FROM ubuntu:16.04
+
+MAINTAINER ZeroC, Inc. docker-maintainers@zeroc.com
+
+ENV ICEBOX_VERSION 3.7.1
+
+RUN apt-key adv --keyserver keyserver.ubuntu.com --recv B6391CB2CFBA643D \
+    && echo "deb http://download.zeroc.com/Ice/3.7/ubuntu16.04 stable main" >> /etc/apt/sources.list.d/ice.list \
+    && apt-get update \
+    && apt-get install --no-install-recommends --no-install-suggests -y \
+        zeroc-icebox=${ICEBOX_VERSION}-* \
+        libzeroc-icestorm3.7=${ICEBOX_VERSION}-* \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN mkdir -p /etc/clock
+
+COPY clock /etc/clock
+
+ENTRYPOINT ["/usr/bin/icebox", "--Ice.Config=/etc/clock/config.icebox "]
 ```
 
-The subscriber receives events as oneway messages. This is the
-default.
+# Ahora vamos hacer a construir la imagen
 
 ```
-subscriber --datagram
+docker build --tag dockerice:first .
 ```
-
-The subscriber receives events as datagrams.
-
-```
-subscriber --twoway
-```
-
-The subscriber receives events as twoway messages.
+# Para desplegar la imagen ejecutamos el siguiente comando.
 
 ```
-subscriber --ordered
-```
-
-The subscriber receives events as twoway messages with guaranteed
-ordering.
+docker run -d --net=host --name dockerice dockerice:first
 
 ```
-subscriber --batch
-```
+# Configurar Publicher.py
 
-This is an additional flag that forwards datagram and oneway events
-to the subscriber in batches.
+Debemos modificar el archivo config.pub y modificar la ip <ip_ice_storm> del servicio de IceStorm.
 
 ```
-subscriber --id <id>
+#
+# This property is used by the clients to connect to IceStorm.
+#
+TopicManager.Proxy=DemoIceStorm/TopicManager:default -h <ip_ice_storm> -p 10000
+
+#
+# Network Tracing
+#
+# 0 = no network tracing
+# 1 = trace connection establishment and closure
+# 2 = like 1, but more detailed
+# 3 = like 2, but also trace data transfer
+#
+#Ice.Trace.Network=1
+
+#
+# IceMX configuration.
+#
+#Ice.Admin.Endpoints=tcp -h localhost -p 10003
+Ice.Admin.InstanceName=publisher
+IceMX.Metrics.Debug.GroupBy=id
+IceMX.Metrics.ByParent.GroupBy=parent
 ```
+# Configurar Subcriber.py
 
-This option specifies a unique identity for this subscriber. When
-you use this option, you should also run the subscriber on a fixed
-port by setting the `Clock.Subscriber.Endpoints` property. For
-example:
-
-```
-subscriber --Clock.Subscriber.Endpoints="tcp -p <port> -h <host>"
-```
-
-Replace "tcp" with "udp" when using the --datagram option.
-
-```
-subscriber --retryCount <count>
-```
-
-This option sets the retry count for a subscriber. This option
-should be used in conjunction with the --id option. Setting
-retryCount changes the default subscriber QoS to twoway.
-
-Publisher Options
------------------
-
-```
-publisher --oneway
-```
-
-The publisher sends events as oneway messages. This is the default.
+Debemos modificar el archivo config.sub y modificar la ip <ip_ice_storm> del servicio de IceStorm.
 
 ```
-publisher --datagram
+#
+# This property is used to configure the endpoints of the clock
+# subscriber adapter. These endpoints are where the client receives
+# topic messages from IceStorm.
+#
+Clock.Subscriber.Endpoints=tcp:udp
+
+#
+# Only listen on the localhost interface by default.
+#
+Ice.Default.Host=localhost
+
+#
+# This property is used by the clients to connect to IceStorm.
+#
+TopicManager.Proxy=DemoIceStorm/TopicManager:default -h <ip_ice_storm> -p 10000
+
+#
+# Network Tracing
+#
+# 0 = no network tracing
+# 1 = trace connection establishment and closure
+# 2 = like 1, but more detailed
+# 3 = like 2, but also trace data transfer
+#
+#Ice.Trace.Network=1
+
+#
+# IceMX configuration.
+#
+#Ice.Admin.Endpoints=tcp -h localhost -p 10002
+Ice.Admin.InstanceName=subscriber
+IceMX.Metrics.Debug.GroupBy=id
+IceMX.Metrics.ByParent.GroupBy=parent
 ```
 
-The publisher sends events as datagrams.
-
-```
-publisher --twoway
-```
-
-The publisher sends events as twoway messages.
-
-Running the demo on several hosts
-=================================
-
-You must modify several configuration files in order to run the
-publisher, subscriber, and IceStorm service on separate hosts. For
-the sake of discussion, let us assume that the processes are running
-on the following hosts:
-
- - Host `<P>`: publisher
- - Host `<S>`: subscriber
- - Host `<I>`: IceStorm
-
-Replace `<P>`, `<S>`, and `<I>` with the appropriate host names or IP
-addresses in the steps below:
-
-1. Edit the subscriber's configuration file, `config.sub`, and change
-   the `TopicManager.Proxy` property to
-   ```
-   TopicManager.Proxy=DemoIceStorm/TopicManager:default -h <I> -p 10000
-   ```
-
-2. Edit the publisher's configuration file, `config.pub`, and change
-   the `TopicManager.Proxy` property to
-   ```
-   TopicManager.Proxy=DemoIceStorm/TopicManager:default -h <I> -p 10000
-   ```
-
-3. Since the default configurations for the subscriber and IceStorm
-   endpoints listen only to localhost, you must also modify the Endpoints
-   properties to explicitly include the host machine's name or IP
-   address.
-
-   In `config.sub`:
-   ```
-   Clock.Subscriber.Endpoints=tcp -h <S>:udp -h <S>
-   ```
-
-   In `config.service`:
-   ```
-   IceStorm.TopicManager.Endpoints=default -h <I> -p 10000
-   IceStorm.Publish.Endpoints=tcp -h <I> -p 10001:udp -h <I> -p 10001
-   ```
-
-If you experience any network delays or errors, edit all of the
-configuration files and enable the `Ice.Trace.Network` property. Running
-the processes with this property enabled displays a log of Ice's
-network activity and may help you to identify the problem more
-quickly.
 
 [1]: https://doc.zeroc.com/display/Ice37/IceStorm
+[2]: https://github.com/zeroc-ice/ice-dockerfiles/blob/master/3.7/icestorm/Dockerfile
