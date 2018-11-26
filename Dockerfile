@@ -12,6 +12,8 @@ RUN apt-key adv --keyserver keyserver.ubuntu.com --recv B6391CB2CFBA643D \
         libzeroc-icestorm3.7=${ICEBOX_VERSION}-* \
     && rm -rf /var/lib/apt/lists/*
 
+EXPOSE 10000 10001 9996
+
 RUN mkdir -p /etc/clock
 
 COPY clock /etc/clock/
