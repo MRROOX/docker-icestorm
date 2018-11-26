@@ -174,6 +174,8 @@ RUN apt-key adv --keyserver keyserver.ubuntu.com --recv B6391CB2CFBA643D \
 
 RUN mkdir -p /etc/clock
 
+EXPOSE 10000 10001 9996
+
 COPY clock /etc/clock
 
 ENTRYPOINT ["/usr/bin/icebox", "--Ice.Config=/etc/clock/config.icebox "]
