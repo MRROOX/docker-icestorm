@@ -1,0 +1,32 @@
+# Manejo de docker
+#Para crear una imagen desde un docker file.
+docker build --tag dockerice:first .
+
+#Para eliminar un contenedor en ejecución.
+docker rm <nombre_contenedor> -file
+
+#Para ingresar dentro de un contendor docker en ejecucion.
+docker exec -it dockerice bash
+
+#Para elimar todas las images de docker
+docker rmi $(docker images -q)
+
+#Para eliminar todos los contenedores de docker
+docker rm $(docker ps -a -q)
+
+
+#Confgirando Contenedo de IceStorm.
+#Realizamos una referencia relativa desde donde nos encontremos situados, la carpeta IceStormConfig se mapearea en el contenedor como /etc/IceStormConfig
+#Utilizando Imagen oficial
+docker run --name dockerice -v "$(pwd)"/IceStormConfig:/etc/IceStormConfig -v"$(pwd)"/DockerIceStormClock:/data -d zeroc/icestorm
+
+#Utilizando imagen personalizada
+docker run --name dockerice -v "$(pwd)"/IceStormConfig:/etc/IceStormConfig -v"$(pwd)"/DockerIceStormClock:/data dockerice:first
+
+#Para ejecutar icestorm 
+#Ingresar al contenedor dockerice
+
+docker exec -it dockerice bash
+
+#Inicar servicio de IceStorm
+icebox --Ice.Config=/etc/IceStormConfig/icestorm.config

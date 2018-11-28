@@ -2,6 +2,14 @@
 
 Este demo muestra como utilizar [IceStorm][1] dentro de un Contendor Docker y como ejecutar el ejemplo Clock.
 
+Se define un sistema de directorios en donde trabajaremos.
+
+DOCKERICESTORM/
+    /DockerIceStormClock
+    /IceStormConfig
+
+
+
 Lo primero es clonar el ejemplo desde el repositorio oficial de zeroc-ice.
 ```
 git clone https://github.com/zeroc-ice/ice-demos.git
@@ -192,7 +200,7 @@ docker build --tag dockerice:first .
 docker run -d --net=host --name dockerice dockerice:first
 
 ```
-# Configurar Publicher.py
+# Configurar publicher.py
 
 Debemos modificar el archivo config.pub y modificar la ip <ip_ice_storm> del servicio de IceStorm.
 
@@ -220,7 +228,7 @@ Ice.Admin.InstanceName=publisher
 IceMX.Metrics.Debug.GroupBy=id
 IceMX.Metrics.ByParent.GroupBy=parent
 ```
-# Configurar Subcriber.py
+# Configurar subcriber.py
 
 Debemos modificar el archivo config.sub y modificar la ip <ip_ice_storm> del servicio de IceStorm.
 

@@ -12,20 +12,24 @@ RUN apt-key adv --keyserver keyserver.ubuntu.com --recv B6391CB2CFBA643D \
         libzeroc-icestorm3.7=${ICEBOX_VERSION}-* \
     && rm -rf /var/lib/apt/lists/*
 
+# EXPOSE 10000 10001 9996
 
-EXPOSE 10000 10001 9996
+# RUN mkdir -p /etc/clock
 
-RUN mkdir -p /etc/IceStormConfig
+# COPY clock /etc/clock/
 
-# ENTRYPOINT ["/usr/bin/icebox", "--IceBox.Service.IceStorm=IceStormService,37:createIceStorm \
-#                                                           --Ice.Config=/etc/icestorm.conf \
-#                                                           --Freeze.DbEnv.IceStorm.DbHome=/data"]
+# CMD [ "/bin/bash" ]
 
+# CMD ["icebox --Ice.Config=/etc/clock/config.icebox"]
+
+# ENTRYPOINT [ "/bin/bash", "/usr/share/icebox --Ice.Config=/etc/clock/config.icebox" ]
+
+#ENTRYPOINT ["/usr/bin/icebox", "--Ice.Config=/etc/clock/config.icebox"]
 
 # Mi nueva configuracion de DockerIceStorm
 
-# VOLUME [ "/data" ]
+VOLUME [ "/clock" ]
 
-#ENTRYPOINT ["/usr/bin/icebox", "--Ice.Config=/etc/IceStormConfig/icestorm.config"]
-CMD [ "/bin/bash" ]
+ENTRYPOINT ["/usr/bin/icebox", "--Ice.Config=/etc/clock/config.icebox"]
+
 
