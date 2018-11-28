@@ -1,24 +1,29 @@
 # IceStorm en Docker Container
 
-Este demo muestra como utilizar [IceStorm][1] dentro de un Contendor Docker y como ejecutar el ejemplo Clock.
+Este demo se muestra como utilizar [IceStorm][1] dentro de un Contendor Docker y como ejecutar el ejemplo Clock.
 
 Se define un sistema de directorios en donde trabajaremos.
-
+```
 DOCKERICESTORM/
     /DockerIceStormClock
     /IceStormConfig
+```
+En el directorio DockerIceStormClock se debe copiar el ejemplo de clock, que encontraremos en el directorio  ice-demos/python/IceStorm/clock
 
-
-
-Lo primero es clonar el ejemplo desde el repositorio oficial de zeroc-ice.
+Se debe clonar el ejemplo desde el repositorio oficial de zeroc-ice.
 ```
 git clone https://github.com/zeroc-ice/ice-demos.git
 ```
-Ahora devemos buscar el directorio ice-demos/python/IceStorm/clock ésta carpeta contiene el ejemplo clock.
+Ahora se debe buscar el directorio ice-demos/python/IceStorm/clock ya que ésta carpeta contiene el ejemplo clock.
 
-Copiamos la carpeta Clock dentro de nuestro directorio de trabajo.
+Copiamos la carpeta clock dentro del directorio DockerIceStorm.
 
-Ahora dentro del direcotio de trabajo y luego dentro del directorio Clock vamos a modificar el archivo config.icebox  de la siguiente forma.
+Dentro del ejemplo clock se encuentran 2 archivos que serviran para configurar el servicio de IceStorm.
+
+Los archivos son config.icebox y config.service.
+
+Estos dos archivos los copiaremos al directorio IceStormConfig.
+
 ```
 #
 # Enable Ice.Admin object
