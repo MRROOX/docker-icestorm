@@ -1,4 +1,4 @@
-# Manejo de docker
+#Manejo de docker
 #Para crear una imagen desde un docker file.
 docker build --tag dockerice:first .
 
@@ -21,7 +21,7 @@ docker rm $(docker ps -a -q)
 docker run --name dockerice -v "$(pwd)"/IceStormConfig:/etc/IceStormConfig -v"$(pwd)"/DockerIceStormClock:/data -d zeroc/icestorm
 
 #Utilizando imagen personalizada
-docker run --name dockerice -v "$(pwd)"/IceStormConfig:/etc/IceStormConfig -v"$(pwd)"/DockerIceStormClock:/data dockerice:first
+docker run -ti -p 10000:10000 -p 10001:10001 --name dockerice -v "$(pwd)"/IceStormConfig:/etc/IceStormConfig -v"$(pwd)"/DockerIceStormClock:/data dockerice:first
 
 #Para ejecutar icestorm 
 #Ingresar al contenedor dockerice
@@ -29,4 +29,13 @@ docker run --name dockerice -v "$(pwd)"/IceStormConfig:/etc/IceStormConfig -v"$(
 docker exec -it dockerice bash
 
 #Inicar servicio de IceStorm
-icebox --Ice.Config=/etc/IceStormConfig/icestorm.config
+icebox --Ice.Config=/etc/IceStormConfig/config.icebox &
+
+#Reiniciar contenedor
+docker restart dockerice
+
+#Detener contenedor
+docker stop dockerice
+
+#Iniciar contenedor
+docker start dockerice

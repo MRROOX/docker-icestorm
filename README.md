@@ -8,35 +8,55 @@ DOCKERICESTORM/
     /DockerIceStormClock
     /IceStormConfig
 ```
+En el directorio DockerIceStormClock guardaremos el ejemplo de clock.
+En el directorio IceStormConfig guardaremos los archivos de configuración del servicio IceStorm.
+
 En el directorio DockerIceStormClock se debe copiar el ejemplo de clock, que encontraremos en el directorio  ice-demos/python/IceStorm/clock
 
 Se debe clonar el ejemplo desde el repositorio oficial de zeroc-ice.
 ```
 git clone https://github.com/zeroc-ice/ice-demos.git
 ```
-Ahora se debe buscar el directorio ice-demos/python/IceStorm/clock ya que ésta carpeta contiene el ejemplo clock.
 
-Copiamos la carpeta clock dentro del directorio DockerIceStorm.
-
-Dentro del ejemplo clock se encuentran 2 archivos que serviran para configurar el servicio de IceStorm.
+Dentro del ejemplo clock se encuentran 2 archivos que serviran para configurar el servicio de IceStorm dentro del contendor de Docker.
 
 Los archivos son config.icebox y config.service.
 
-Estos dos archivos los copiaremos al directorio IceStormConfig.
+Estos dos archivos los copiaremos al directorio de trabajo IceStormConfig.
+
+
+# Tambien debemos modificar el archivo config.icebox de la siguiente forma.
+
+Las siguientes linea :
+
+```
+Ice.Admin.Endpoints=tcp -h localhost -p 9996
+
+IceBox.Service.IceStorm=IceStormService,37:createIceStorm --Ice.Config=config.service
+```
+
+Debemos cambiarla por:
+```
+Ice.Admin.Endpoints=tcp -h <nombre_del_contenedor> -p 9996
+
+IceBox.Service.IceStorm=IceStormService,37:createIceStorm --Ice.Config=/etc/IceStormConfig/config.service
+```
+
+El archivo de configuración config.icebox queda de la siguiente forma:
 
 ```
 #
 # Enable Ice.Admin object
 # The IceStorm service has its own endpoints (see config.service).
 #
-Ice.Admin.Endpoints=tcp -h localhost -p 9996
+Ice.Admin.Endpoints=tcp -h <nombre_del_contenedor> -p 9996
 Ice.Admin.InstanceName=icebox
 
 #
 # The IceStorm service. The service is configured using a separate
 # configuration file (see config.service).
 #
-IceBox.Service.IceStorm=IceStormService,37:createIceStorm --Ice.Config=/etc/clock/config.service
+IceBox.Service.IceStorm=IceStormService,37:createIceStorm --Ice.Config=/etc/IceStormConfig/config.service
 
 #
 # Warn about connection exceptions
@@ -63,6 +83,27 @@ IceBox.Service.IceStorm=IceStormService,37:createIceStorm --Ice.Config=/etc/cloc
 ```
 # Tambien debemos modificar el archivo config.service de la siguiente forma.
 
+Las siguientes linea :
+
+```
+IceStorm.TopicManager.Endpoints=default -h localhost -p 10000
+
+IceStorm.Publish.Endpoints=tcp -h localhost -p 10001:udp -h localhost -p 10001
+
+IceStorm.LMDB.Path=db
+
+```
+
+Debemos cambiarla por:
+```
+IceStorm.TopicManager.Endpoints=default -h <nombre_del_contenedor> -p 10000
+
+IceStorm.Publish.Endpoints=tcp -h <nombre_del_contenedor> -p 10001:udp -h <nombre_del_contenedor> -p 10001
+
+IceStorm.LMDB.Path=db
+```
+El archivo de configuración config.service queda de la siguiente forma:
+
 ```
 #
 # The IceStorm service instance name.
@@ -73,7 +114,7 @@ IceStorm.InstanceName=DemoIceStorm
 # TopicManager listens.
 #
 
-IceStorm.TopicManager.Endpoints=default -h localhost -p 10000
+IceStorm.TopicManager.Endpoints=default -h <nombre_del_contenedor> -p 10000
 
 #
 # This property defines the endpoints on which the topic
@@ -81,7 +122,7 @@ IceStorm.TopicManager.Endpoints=default -h localhost -p 10000
 # IceStorm instances this must run on a fixed port (or use
 # IceGrid).
 #
-IceStorm.Publish.Endpoints=tcp -h localhost -p 10001:udp -h localhost -p 10001
+IceStorm.Publish.Endpoints=tcp -h <nombre_del_contenedor> -p 10001:udp -h <nombre_del_contenedor> -p 10001
 
 #
 # TopicManager Tracing
@@ -129,7 +170,7 @@ IceStorm.Flush.Timeout=2000
 # This property defines the home directory of the LMDB
 # database environment for the IceStorm service.
 #
-IceStorm.LMDB.Path=/etc/clock/db
+IceStorm.LMDB.Path=/etc/DockerIceStormClock/db
 
 #
 # IceMX configuration.
@@ -185,35 +226,108 @@ RUN apt-key adv --keyserver keyserver.ubuntu.com --recv B6391CB2CFBA643D \
         libzeroc-icestorm3.7=${ICEBOX_VERSION}-* \
     && rm -rf /var/lib/apt/lists/*
 
-RUN mkdir -p /etc/clock
+
+# VOLUME ["/data" ]
+
+# ENTRYPOINT ["/usr/bin/icebox", "--IceBox.Service.IceStorm=IceStormService,37:createIceStorm \
+#                                                           --Ice.Config=/etc/icestorm.conf \
+#                                                           --Freeze.DbEnv.IceStorm.DbHome=/data"]
+
+#IceStorm new Config.
 
 EXPOSE 10000 10001 9996
 
-COPY clock /etc/clock
+RUN mkdir -p /etc/IceStormConfig
 
-ENTRYPOINT ["/usr/bin/icebox", "--Ice.Config=/etc/clock/config.icebox "]
+CMD [ "/bin/bash" ]
 ```
 
-# Ahora vamos a construir la imagen
+# Ahora vamos a construir la Imagen Docker 
 
 ```
 docker build --tag dockerice:first .
 ```
 # Para desplegar la imagen ejecutamos el siguiente comando.
 
-```
-docker run -d --net=host --name dockerice dockerice:first
+Es importante destacar que al usar "$(pwd)" montaremos un volumen desde donde estemos parados en el directorio.
+
+Tambien expondremos los puertos 10000 y 10001.
+
+Además utilizaremos la imagen que hemos creado "dockerice:first".
 
 ```
+docker run -ti -p 10000:10000 -p 10001:10001 --name dockerice -v "$(pwd)"/IceStormConfig:/etc/IceStormConfig -v"$(pwd)"/DockerIceStormClock:/data dockerice:first
+
+```
+
+# Ingresar dentro del contenedor en ejecucion 
+
+```
+docker exec -it dockerice bash
+
+```
+Dentro del contendor debemos ontener el nombre del contenedor.
+
+```
+root@1ee59c2b3d3d:/# cat /etc/hosts
+127.0.0.1       localhost
+::1     localhost ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+172.17.0.2      1ee59c2b3d3d
+
+```
+
+El nombre del contenedor es 1ee59c2b3d3d
+
+Debemos salir del contenedor escribiendo exit.
+
+Este nombre lo utilizaremos para configurar el <nombre_del_contenedor> los archivos config.icebox y config.service 
+
+Luego que modifiquemos los archivos debemos parar y luego iniciar el contenedor.
+
+
+```
+docker stop dockerice
+
+docker start dockerice
+
+```
+# Iniciando el servicio de IceStorm dentro del Contenedor Docker.
+
+Para iniciar el servicio de icestorm, debemos ingresar nuevamente a nuestro contenedor
+
+```
+docker exec -it dockerice bash
+```
+
+Y ahora iniciaremos el servicio con el siguiente comando:
+
+```
+icebox --Ice.Config=/etc/IceStormConfig/config.icebox &
+```
+
+O el siguiente comando para dejarlo en segundo plano.
+```
+icebox --Ice.Config=/etc/IceStormConfig/config.icebox
+```
+
+
+
+
 # Configurar publicher.py
 
-Debemos modificar el archivo config.pub y modificar la ip <ip_ice_storm> del servicio de IceStorm.
+Debemos modificar el archivo config.pub y modificar la ip <ip_DOCKERHUB_ice_storm> del servicio de IceStorm.
+
+Esta <ip_DOCKERHUB_ice_storm> es la ip del docker hub o del servidor o pc en donde se encuentre ejecutando el contenedor.
 
 ```
 #
 # This property is used by the clients to connect to IceStorm.
 #
-TopicManager.Proxy=DemoIceStorm/TopicManager:default -h <ip_ice_storm> -p 10000
+TopicManager.Proxy=DemoIceStorm/TopicManager:default -h <ip_DOCKERHUB_ice_storm> -p 10000
 
 #
 # Network Tracing
@@ -235,7 +349,9 @@ IceMX.Metrics.ByParent.GroupBy=parent
 ```
 # Configurar subcriber.py
 
-Debemos modificar el archivo config.sub y modificar la ip <ip_ice_storm> del servicio de IceStorm.
+Debemos modificar el archivo config.sub y modificar la ip <ip_DOCKERHUB_ice_storm> del servicio de IceStorm.
+
+Esta <ip_DOCKERHUB_ice_storm> es la ip del docker hub o del servidor o pc en donde se encuentre ejecutando el contenedor.
 
 ```
 #
@@ -253,7 +369,7 @@ Ice.Default.Host=localhost
 #
 # This property is used by the clients to connect to IceStorm.
 #
-TopicManager.Proxy=DemoIceStorm/TopicManager:default -h <ip_ice_storm> -p 10000
+TopicManager.Proxy=DemoIceStorm/TopicManager:default -h <ip_DOCKERHUB_ice_storm> -p 10000
 
 #
 # Network Tracing
@@ -273,7 +389,6 @@ Ice.Admin.InstanceName=subscriber
 IceMX.Metrics.Debug.GroupBy=id
 IceMX.Metrics.ByParent.GroupBy=parent
 ```
-
 
 [1]: https://doc.zeroc.com/display/Ice37/IceStorm
 [2]: https://github.com/zeroc-ice/ice-dockerfiles/blob/master/3.7/icestorm/Dockerfile

@@ -13,19 +13,17 @@ RUN apt-key adv --keyserver keyserver.ubuntu.com --recv B6391CB2CFBA643D \
     && rm -rf /var/lib/apt/lists/*
 
 
-EXPOSE 10000 10001 9996
-
-RUN mkdir -p /etc/IceStormConfig
+# VOLUME ["/data" ]
 
 # ENTRYPOINT ["/usr/bin/icebox", "--IceBox.Service.IceStorm=IceStormService,37:createIceStorm \
 #                                                           --Ice.Config=/etc/icestorm.conf \
 #                                                           --Freeze.DbEnv.IceStorm.DbHome=/data"]
 
+#IceStorm new Config.
 
-# Mi nueva configuracion de DockerIceStorm
+EXPOSE 10000 10001 9996
 
-# VOLUME [ "/data" ]
+RUN mkdir -p /etc/IceStormConfig
 
-#ENTRYPOINT ["/usr/bin/icebox", "--Ice.Config=/etc/IceStormConfig/icestorm.config"]
 CMD [ "/bin/bash" ]
 
