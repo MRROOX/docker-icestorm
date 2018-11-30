@@ -306,12 +306,12 @@ docker exec -it dockerice bash
 Y ahora iniciaremos el servicio con el siguiente comando:
 
 ```
-icebox --Ice.Config=/etc/IceStormConfig/config.icebox &
+icebox --Ice.Config=/etc/IceStormConfig/config.icebox
 ```
 
 O el siguiente comando para dejarlo en segundo plano.
 ```
-icebox --Ice.Config=/etc/IceStormConfig/config.icebox
+icebox --Ice.Config=/etc/IceStormConfig/config.icebox &
 ```
 
 
