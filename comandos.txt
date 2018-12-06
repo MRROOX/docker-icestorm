@@ -21,7 +21,7 @@ docker rm $(docker ps -a -q)
 docker run --name dockerice -v "$(pwd)"/IceStormConfig:/etc/IceStormConfig -v"$(pwd)"/DockerIceStormClock:/data -d zeroc/icestorm
 
 #Utilizando imagen personalizada
-docker run -ti -p 10000:10000 -p 10001:10001 --name dockerice -v "$(pwd)"/IceStormConfig:/etc/IceStormConfig -v"$(pwd)"/DockerIceStormClock:/data dockerice:first
+docker run -ti -p 10000:10000 -p 10001:10001 --name dockerice -v "$(pwd)"/IceStormConfig:/etc/IceStormConfig -v"$(pwd)"/ClockExample:/data dockerice:first
 
 #Para ejecutar icestorm 
 #Ingresar al contenedor dockerice
