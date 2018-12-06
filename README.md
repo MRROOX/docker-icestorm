@@ -170,7 +170,7 @@ IceStorm.Flush.Timeout=2000
 # This property defines the home directory of the LMDB
 # database environment for the IceStorm service.
 #
-IceStorm.LMDB.Path=/etc/DockerIceStormClock/db
+IceStorm.LMDB.Path=/etc/ClockExample/db
 
 #
 # IceMX configuration.
@@ -256,7 +256,7 @@ Tambien expondremos los puertos 10000 y 10001.
 Además utilizaremos la imagen que hemos creado "dockerice:first".
 
 ```
-docker run -ti -p 10000:10000 -p 10001:10001 --name dockerice -v "$(pwd)"/IceStormConfig:/etc/IceStormConfig -v"$(pwd)"/DockerIceStormClock:/data dockerice:first
+docker run -ti -p 10000:10000 -p 10001:10001 --name dockerice -v "$(pwd)"/IceStormConfig:/etc/IceStormConfig -v"$(pwd)"/ClockExample:/data dockerice:first
 
 ```
 
