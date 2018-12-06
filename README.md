@@ -5,7 +5,7 @@ Este demo se muestra como utilizar [IceStorm][1] dentro de un Contendor Docker y
 Se define un sistema de directorios en donde trabajaremos.
 ```
 DOCKERICESTORM/
-    /DockerIceStormClock
+    /ClockExample
     /IceStormConfig
 ```
 En el directorio DockerIceStormClock guardaremos el ejemplo de clock.
